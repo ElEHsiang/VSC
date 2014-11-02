@@ -4,10 +4,10 @@ from PyQt5.QtWidgets import *
 import sys
 import skimage
 import copy
+import numpy as np
 from skimage import io, filter, data
 from skimage.morphology import disk
 from gaussian_model import *
-
 
 class Form(QWidget):
     def __init__(self):
@@ -242,7 +242,7 @@ class Form(QWidget):
         self.label_tempImage.setPixmap(QPixmap(image))
 
     def button_levelSetStepClick(self):
-        print('LS step')
+        #print('LS step')
         currentMap =  [ list(i) for i in self.LSmap]
 
         image = self.image
@@ -271,22 +271,53 @@ class Form(QWidget):
                 if currentMap[y][x] == 0:
                     tempImage.setPixel(x, y, qRgb(255, 0, 0))
         self.LSmap = currentMap
+        #self.label_tempImage.setPixmap(QPixmap(tempImage))
 
-        self.label_tempImage.setPixmap(QPixmap(tempImage))
+        self.fillHole()
+
 
     def button_levelSetClick(self):
         print('level set')
-        self.fillHole()
+
+        step = 0
+        lastContour = list(self.contour)
+
+        while True:
+            self.button_levelSetStepClick()
+            QEventLoop().processEvents()
+            step += 1
+
+            #print(lastContour)
+            #print(self.contour)
+
+            if lastContour == self.contour:
+                lastContour = list(self.contour)
+                break
+
+            lastContour = list(self.contour)
 
     def fillHole(self):
-        seed = QPoint(0, 0)
-        height = self.image.height()
-        width = self.image.width()
+        image = QImage(self.image)
 
-        holeMap = [row[:] for row in self.LSmap]
-        print(holeMap)
+        self.contour = []
 
+        holeMap = np.array([row[:] for row in self.LSmap])
 
+        for y, l in enumerate(holeMap):
+            for x, val in enumerate(l):
+                if val == 0:
+                    if holeMap[y - 1][x] == 1 or holeMap[y + 1][x] == 1 or holeMap[y][x - 1] == 1 or holeMap[y][x + 1] == 1:
+                        self.contour.append((x, y))
+                        image.setPixel(x, y, qRgb(255, 0, 0))
+                        pass
+                    else:
+                        holeMap[y][x] = -1
+
+        for p in self.contour:
+            pass
+
+        self.label_tempImage.setPixmap(QPixmap(image))
+        self.LSmap = holeMap
 
 
 def main():
