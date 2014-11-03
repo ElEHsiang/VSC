@@ -236,6 +236,7 @@ class Form(QWidget):
         for y in range(len(self.LSmap)):
             for x in range(len(self.LSmap[0])):
                 if self.LSmap[y][x] == 0:
+                    self.contour.append((x, y))
                     painter.drawPoint(x, y)
         del painter
 
