@@ -23,7 +23,7 @@ class Form(QWidget):
         #load image
         self.image = QImage()
         self.image.load('test image/I0000535.JPG')
-        self.sImage = io.imread('test image/I0000535.JPG')
+        self.sImage = io.imread('test image/I0000535.JPG',as_grey=True)
 
         #create a Qlabel for image display
         self.imageLabel = QLabel()
@@ -58,6 +58,21 @@ class Form(QWidget):
         self.button_levelSet.setText('LS')
         self.button_levelSet.clicked.connect(self.button_levelSetClick)
 
+        #QPushButton, show LS map
+        self.button_showLSmap = QPushButton()
+        self.button_showLSmap.setText('show ls map')
+        self.button_showLSmap.clicked.connect(self.button_showLSmapClick)
+
+        #QPushButton, fill hole
+        self.button_fillHole = QPushButton()
+        self.button_fillHole.setText('fill hole')
+        self.button_fillHole.clicked.connect(self.button_fillHoleClick)
+
+        #QPushButton, median
+        self.button_median = QPushButton()
+        self.button_median.setText('median')
+        self.button_median.clicked.connect(self.button_medianClick)
+
         #QPushButton, show intensity classify
         self.button_showIntensitySegment = QPushButton()
         self.button_showIntensitySegment.setText('show intensity classify')
@@ -68,24 +83,44 @@ class Form(QWidget):
         self.button_showGradientSegment.setText('show gradient classify')
         self.button_showGradientSegment.clicked.connect(self.button_showGradientSegmentClick)
 
+        #QHBoxLayout, LS button
+        self.hBoxLayout_LS = QHBoxLayout()
+        self.groupBox_LS = QGroupBox()
+
+        #QHBoxLayout, button
         self.hLayout = QHBoxLayout()
         self.hGroupBox = QGroupBox()
 
-        #add widget into layout
-        self.mainLayout.addWidget(self.imageLabel, 0, 0)
-        self.mainLayout.addWidget(self.label_tempImage,0, 1)
+        #QHBoxLayout, image
+        self.hBoxLayout_image = QHBoxLayout()
+        self.groupBox_image = QGroupBox()
 
-        #add button to vBoxLayout
-        self.hLayout.addWidget(self.imageNameLine)
-        self.hLayout.addWidget(self.button_loadData)
-        self.hLayout.addWidget(self.button_loadContour)
-        self.hLayout.addWidget(self.button_levelSet)
-        self.hLayout.addWidget(self.button_levelSetStep)
+        #add widget into image layout
+        self.hBoxLayout_image.addWidget(self.imageLabel)
+        self.hBoxLayout_image.addWidget(self.label_tempImage)
+
+        #add LS button to self.hboxlayout_ls
+        self.hBoxLayout_LS.addWidget(self.imageNameLine)
+        self.hBoxLayout_LS.addWidget(self.button_loadData)
+        self.hBoxLayout_LS.addWidget(self.button_loadContour)
+        self.hBoxLayout_LS.addWidget(self.button_levelSet)
+        self.hBoxLayout_LS.addWidget(self.button_levelSetStep)
+        self.hBoxLayout_LS.addWidget(self.button_showLSmap)
+        self.hBoxLayout_LS.addWidget(self.button_fillHole)
+
+        #add other button to self.hLayout
+        self.hLayout.addWidget(self.button_median)
         self.hLayout.addWidget(self.button_showIntensitySegment)
         self.hLayout.addWidget(self.button_showGradientSegment)
 
+        self.groupBox_LS.setLayout(self.hBoxLayout_LS)
+        self.mainLayout.addWidget(self.groupBox_LS, 1, 0)
+
         self.hGroupBox.setLayout(self.hLayout)
-        self.mainLayout.addWidget(self.hGroupBox, 1, 0)
+        self.mainLayout.addWidget(self.hGroupBox, 2, 0)
+
+        self.groupBox_image.setLayout(self.hBoxLayout_image)
+        self.mainLayout.addWidget(self.groupBox_image, 0, 0)
 
         self.setLayout(self.mainLayout)
 
@@ -105,7 +140,7 @@ class Form(QWidget):
         fileName = self.imageNameLine.text()
         try:
             image = QImage('test image/' + fileName + '.JPG')
-            sImage = io.imread('test image/' + fileName + '.JPG')
+            sImage = io.imread('test image/' + fileName + '.JPG', as_grey=True)
             fb = open('model/' + fileName + '_bone_model.txt', 'r')
             fnb = open('model/' + fileName + '_non-bone_model.txt', 'r')
         except IOError as e:
@@ -165,6 +200,20 @@ class Form(QWidget):
 
 
         print('model load finish!')
+
+    def button_medianClick(self):
+        image = QImage(self.image)
+        sImage = np.array(self.sImage)
+
+        sImage = filter.rank.median(sImage, disk(3))
+
+        for y in range(image.height()):
+            for x in range(image.width()):
+                image.setPixel(x, y, qRgb(sImage[y][x], sImage[y][x], sImage[y][x]))
+
+        self.label_tempImage.setPixmap(QPixmap(image))
+
+
 
     def button_showIntensitySegmentClick(self):
 
@@ -250,6 +299,30 @@ class Form(QWidget):
 
         tempImage = QImage(self.image)
 
+        new_contour = list(self.contour)
+
+        for p in self.contour:
+            for x, y in [(p[0] + 1, p[1]), (p[0] - 1, p[1]), (p[0], p[1] + 1), (p[0], p[1] - 1)]:
+                intensity = qGray(image.pixel(x, y))
+                pbi = self.biModel.getProb(intensity)
+                pnbi = self.nbiModel.getProb(intensity)
+                if pbi > pnbi:
+                    if currentMap[y][x] > 0:
+                        currentMap[y][x] = 0
+                        new_contour.append((x, y))
+
+        for p in new_contour:
+            inside_count = 0
+            for x, y in [(p[0] + 1, p[1]), (p[0] - 1, p[1]), (p[0], p[1] + 1), (p[0], p[1] - 1)]:
+                if self.LSmap[y][x] == 0 or self.LSmap[y][x] == -1:
+                    inside_count += 1
+            if inside_count == 4:
+                currentMap[p[1]][p[0]] = -1
+                new_contour.remove((p))
+            else:
+                tempImage.setPixel(x, y, qRgb(255, 0, 0))
+
+        """
         for y in range( 1, image.height() - 1):
             for x in range( 1, image.width() - 1):
                 intensity = qGray(image.pixel(x, y))
@@ -267,14 +340,15 @@ class Form(QWidget):
                     #print('non-bone')
                     #tempImage.setPixel(x, y, qRgb(255, 255, 255))
 
+
         for y in range(image.height()):
             for x in range(image.width()):
                 if currentMap[y][x] == 0:
                     tempImage.setPixel(x, y, qRgb(255, 0, 0))
+        """
         self.LSmap = currentMap
-        #self.label_tempImage.setPixmap(QPixmap(tempImage))
-
-        self.fillHole()
+        self.contour = new_contour
+        self.label_tempImage.setPixmap(QPixmap(tempImage))
 
 
     def button_levelSetClick(self):
@@ -297,29 +371,74 @@ class Form(QWidget):
 
             lastContour = list(self.contour)
 
-    def fillHole(self):
+        print('level set complete')
+
+    def button_showLSmapClick(self):
+
         image = QImage(self.image)
-
-        self.contour = []
-
-        holeMap = np.array([row[:] for row in self.LSmap])
-
-        for y, l in enumerate(holeMap):
+        for y, l in enumerate(self.LSmap):
             for x, val in enumerate(l):
+                if val == 1:
+                    image.setPixel(x, y, qRgb(0, 200, 200))
                 if val == 0:
-                    if holeMap[y - 1][x] == 1 or holeMap[y + 1][x] == 1 or holeMap[y][x - 1] == 1 or holeMap[y][x + 1] == 1:
-                        self.contour.append((x, y))
-                        image.setPixel(x, y, qRgb(255, 0, 0))
-                        pass
-                    else:
-                        holeMap[y][x] = -1
-
-        for p in self.contour:
-            pass
+                    image.setPixel(x, y, qRgb(255, 0, 0))
+                if val == -1:
+                    image.setPixel(x, y, qRgb(200, 200, 0))
 
         self.label_tempImage.setPixmap(QPixmap(image))
-        self.LSmap = holeMap
 
+    def button_fillHoleClick(self):
+        image = QImage(self.image)
+
+        label_map = np.zeros((image.height(), image.width()))
+
+        stack = [(0,0)]
+
+        while stack:
+            print(len(stack))
+            p = stack.pop()
+
+            if label_map[p[1]][p[0]] == 1:
+                continue
+
+            label_map[p[1]][p[0]] = 1
+
+
+            if self.check_point_range((p[0]+1, p[1])) and self.check_point_LS((p[0]+1, p[1])):
+                stack.append((p[0]+1, p[1]))
+            if self.check_point_range((p[0]-1, p[1])) and self.check_point_LS((p[0]-1, p[1])):
+                stack.append((p[0]-1, p[1]))
+            if self.check_point_range((p[0], p[1]+1)) and self.check_point_LS((p[0], p[1]+1)):
+                stack.append((p[0], p[1]+1))
+            if self.check_point_range((p[0], p[1]-1)) and self.check_point_LS((p[0], p[1]-1)):
+                stack.append((p[0], p[1]-1))
+
+        for p in self.contour:
+            if label_map[p[1]+1][p[0]] == 1 or label_map[p[1]-1][p[0]] == 1 or label_map[p[1]][p[0]+1] == 1 or label_map[p[1]][p[0]-1] == 1:
+                label_map[p[1]][p[0]] = -1
+
+        for y in range(image.height()):
+            for x in range(image.width()):
+                if label_map[y][x] == 1:
+                    image.setPixel(x, y, qRgb(0, 0, 0))
+                if label_map[y][x] == -1:
+                    image.setPixel(x, y, qRgb(255, 0, 0))
+                if label_map[y][x] == 0:
+                    image.setPixel(x, y, qRgb(255, 255, 255))
+
+        self.label_tempImage.setPixmap(QPixmap(image))
+
+    def check_point_range(self, point):
+        if point[0] >= 0 and point[1] >= 0 and point[0] < self.image.width() and point[1] < self.image.height():
+            return True
+        else:
+            return False
+
+    def check_point_LS(self, point):
+        if self.LSmap[point[1]][point[0]] > 0:
+            return True
+        else:
+            return False
 
 def main():
     app = QApplication(sys.argv)
