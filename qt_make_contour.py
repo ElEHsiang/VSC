@@ -62,12 +62,12 @@ class Form(QWidget):
 
         #QPushButton, clear contour
         self.saveContourButton = QPushButton()
-        self.saveContourButton.setText("save contour")
+        self.saveContourButton.setText("save contour information")
         self.saveContourButton.clicked.connect(self.saveContourButtonClick)
 
         #QPushButton, save image
         self.saveImageButton = QPushButton()
-        self.saveImageButton.setText('save image')
+        self.saveImageButton.setText('save current image')
         self.saveImageButton.clicked.connect(self.saveImageButtonClick)
 
         #QGroupBox, Heaviside function type selection
@@ -162,7 +162,7 @@ class Form(QWidget):
     def closeContourButtonClick(self):
         if len(self.contour) < 2:
             return
-        
+
         temp = QImage(self.imageLabel.pixmap())
         painter = QPainter(temp)
         pen = QPen(Qt.red)
@@ -198,17 +198,20 @@ class Form(QWidget):
     def openFileButtonClick(self):
         fname = QFileDialog.getOpenFileName(self, 'open file', '.', 'Images (*.jpg *.bmp)')
         print(fname[0])
-        self.image.load(fname[0]) 
+        self.image.load(fname[0])
         self.imageLabel.setPixmap(QPixmap(self.image))
         self.originImage.load(fname[0])
 
-        imageNumber = fname[0].split('.')[0]
+        self.imageNumber = fname[0].split('.')[0]
+        self.imageNumber = self.imageNumber.split('/')[-1]
+        print(self.imageNumber)
 
         self.imageName = fname[0]
 
     def saveImageButtonClick(self):
         image = QImage(self.imageLabel.pixmap())
-        image.save('contour_' + self.imageName, format='JPG')
+        image.save('contour_' + self.imageNumber + '.JPG', format='JPG')
+        print('image saved!')
 
     def savePhiButtonClick(self):
 
