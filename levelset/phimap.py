@@ -7,12 +7,19 @@ class Point:
 
 class Phimap:
     def __init__(self, width=0, height=0):
-        if not width or not height:
-            return
-
         self._width = width
         self._height = height
         self._phi = []
+
+    def set_range(self, width, height):
+        self._width = width
+        self._height = height
+
+    def set_contour(self, center=(0,0), radius=1):
+        if not self._width or not self._height:
+            raise ValueError('Assign width and height first')
+
+        print('set')
 
     @property
     def width(self):
