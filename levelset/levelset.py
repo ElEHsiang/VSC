@@ -1,7 +1,26 @@
+# -*- coding: utf-8 -*-
+
+from itertools import cycle
+
 import numpy as np
 import scipy as sp
 import scipy.ndimage
 import phimap
+
+_P2 = [np.eye(3), np.array([[0,1,0]] * 3), np.flipud(np.eye(3)), np.rot90([[0,1,0]] * 3)]
+
+class Fcycle(object):
+    def __init__(self, iterable):
+        self.func = cycle(iterable)
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
+def IS(u):
+    global _aux
+    if np.ndim(u) == 2:
+        P = _P2
+
 
 class LevelSet():
     """Level set solver
@@ -23,7 +42,7 @@ class LevelSet():
         threshold -- mask threhold, determine level set affect region
         balloon -- balloon force
         """
-        if type(a) is not np.ndarray:
+        if type(image) is not np.ndarray:
             raise(TypeError, "image must be numpy ndarray")
 
         self._u = None
@@ -65,17 +84,19 @@ class LevelSet():
         if u is None:
             raise ValueError("The levelset is not set")
 
-        curr_u = np.copy(u)
+        res = np.copy(u)
 
+        #count next u(t+1) position
         if balloon > 0:
             aux = scipy.ndimage.binary_dilation(u, self.structure)
         elif balloon < 0:
             aux = scipy.ndimage.binary_erosion(u, self.structure)
-
+        #only consider u in mask
         if balloon != 0:
             res[self._mask_v] = aux[self._mask_v]
 
         aux = np.zeros_like(res)
+        #count gradient of u
         dres = np.gradient(res)
         for e11, e12 in zip(dgI, dres):
             aux += e11 * e12
@@ -84,8 +105,4 @@ class LevelSet():
 
         self._u = res
 
-
-        pass
-
-
-
+        return self._u

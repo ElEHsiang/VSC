@@ -58,6 +58,11 @@ class Form(QWidget):
         self.button_levelSet.setText('LS')
         self.button_levelSet.clicked.connect(self.button_levelSetClick)
 
+        #QPushButton, Morph snake
+        self.button_morphSnake = QPushButton()
+        
+            
+
         #QPushButton, show LS map
         self.button_showLSmap = QPushButton()
         self.button_showLSmap.setText('show ls map')
