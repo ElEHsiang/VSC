@@ -86,9 +86,14 @@ class Form(QMainWindow):
         return [pushButton_snake]
 
     def open_image_(self):
-        file_name = QFileDialog.getOpenFileName(self, 'Open Image', '.', 'Images (*.jpg, *.bmp)')
+        file_name, file_filter = QFileDialog.getOpenFileName(self, 'Open Image', '.', 'Images (*.jpg *.bmp)')
         if not file_name:
             return
+        print(file_name)
+        self._image = QImage(file_name)
+        self._data = imread(file_name)[...,0]
+
+        self.label_image.setPixmap(QPixmap(self._image))
 
         pass
         
