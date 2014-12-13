@@ -58,10 +58,6 @@ class Form(QWidget):
         self.button_levelSet.setText('LS')
         self.button_levelSet.clicked.connect(self.button_levelSetClick)
 
-        #QPushButton, Morph snake
-        self.button_morphSnake = QPushButton()
-        
-            
 
         #QPushButton, show LS map
         self.button_showLSmap = QPushButton()
@@ -100,6 +96,9 @@ class Form(QWidget):
         self.hBoxLayout_image = QHBoxLayout()
         self.groupBox_image = QGroupBox()
 
+        #morph snake group bux
+        self.init_morph_UI()
+
         #add widget into image layout
         self.hBoxLayout_image.addWidget(self.imageLabel)
         self.hBoxLayout_image.addWidget(self.label_tempImage)
@@ -121,11 +120,15 @@ class Form(QWidget):
         self.groupBox_LS.setLayout(self.hBoxLayout_LS)
         self.mainLayout.addWidget(self.groupBox_LS, 1, 0)
 
+        self.mainLayout.addWidget(self.groupBox_morph, 2, 0)
+
         self.hGroupBox.setLayout(self.hLayout)
-        self.mainLayout.addWidget(self.hGroupBox, 2, 0)
+        self.mainLayout.addWidget(self.hGroupBox, 3, 0)
 
         self.groupBox_image.setLayout(self.hBoxLayout_image)
-        self.mainLayout.addWidget(self.groupBox_image, 0, 0)
+        self.mainLayout.addWidget(self.imageLabel, 0 ,0)
+        self.mainLayout.addWidget(self.label_tempImage, 0 ,1)
+        #self.mainLayout.addWidget(self.groupBox_image, 0, 0)
 
         self.setLayout(self.mainLayout)
 
@@ -133,13 +136,30 @@ class Form(QWidget):
 
         self.show()
 
+    def init_morph_UI(self):
+        #QPushButton, Morph snake
+        self.button_morphSnake = QPushButton()
+        self.button_morphSnake.setText("morph snake")
+        self.button_morphSnake.clicked.connect(self.button_morphSnakeClick)
+
+        self.hBoxLayout_morph = QHBoxLayout()
+        self.groupBox_morph = QGroupBox()
+
+        self.hBoxLayout_morph.addWidget(self.button_morphSnake)
+        self.groupBox_morph.setLayout(self.hBoxLayout_morph)
+
     def initData(self):
         self.contour = []
         self.LSmap = []
+        self._init_point = ()
         self.originImage = QImage(self.image)
 
     def mousePressEvent(self, event):
-        pass
+        point = event.pos() - self.label_tempImage.pos()
+        if point.x() < 0 or point.y() < 0 or point.x() > self.image.width() or point.y() > self.image.height():
+                return
+        self._init_point = (point.x(), point.y())
+        print(self._init_point)
 
     def button_loadDataClick(self):
         fileName = self.imageNameLine.text()
@@ -444,6 +464,10 @@ class Form(QWidget):
             return True
         else:
             return False
+
+    def button_morphSnakeClick(self):
+        
+        pass
 
 def main():
     app = QApplication(sys.argv)
