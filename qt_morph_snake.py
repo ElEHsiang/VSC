@@ -12,6 +12,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from scipy.misc import imread
 
+from utils.MyQLabel import MyQLabel
+
 __author__ = 'Yun Hsiang'
 __email__ = 'hsiang023167@gmail.com'
 
@@ -74,7 +76,9 @@ class Form(QMainWindow):
         gridLayout_main.addWidget(groupBox_morph, 0, 1)
 
     def init_label(self):
-        self.label_image = QLabel()
+        self.label_image = MyQLabel()
+        self.label_image.setAlignment(Qt.AlignTop)
+        self.label_image.click_pos.connect(self.update_pos_)
         pass
 
     def init_general_button(self):
@@ -95,11 +99,16 @@ class Form(QMainWindow):
 
         self.label_image.setPixmap(QPixmap(self._image))
 
-        pass
-        
-        
+    @pyqtSlot(int, int)
+    def update_pos_(self, x, y):
+        if not self._image:
+            return
+        x = x if x < self._image.width() else -1
+        y = y if y < self._image.height() else -1
 
-
+        if x is not -1 and y is not -1:
+            self._init_point = (x, y)
+            print("Click position:{} {}".format(x, y))
 
 def main():
     app = QApplication(sys.argv)
