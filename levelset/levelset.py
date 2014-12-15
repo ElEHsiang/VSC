@@ -5,7 +5,6 @@ from itertools import cycle
 import numpy as np
 import scipy as sp
 import scipy.ndimage
-import phimap
 
 _P2 = [np.eye(3), np.array([[0,1,0]] * 3), np.flipud(np.eye(3)), np.rot90([[0,1,0]] * 3)]
 
@@ -22,7 +21,7 @@ def IS(u):
         P = _P2
 
 
-class LevelSet():
+class LevelSetSolver():
     """Level set solver
 
     Attributes

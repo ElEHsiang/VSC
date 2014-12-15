@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import *
 from scipy.misc import imread
 
 from utils.MyQLabel import MyQLabel
+from levelset.levelset import LevelSetSolver
 
 __author__ = 'Yun Hsiang'
 __email__ = 'hsiang023167@gmail.com'
@@ -24,11 +25,23 @@ class Form(QMainWindow):
         label_image: QLabel for display image.
         _image: QImage for original image.
         _data: numpy.ndarray for image, gray scale.
+        _init_point: level set init point.
+        _solver: LevelSetSolver
 
+    Slot:
+        _pushButton_snake_click: Start snake process.
+        _update_pos: Connected with MyQLabel. Record level set init point.
     """
     def __init__(self):
         super().__init__()
         self.init_UI()
+        self.init_data()
+
+    def init_data(self):
+        self._image = []
+        self._data = []
+        self._init_point = ()
+        self._solver = []
 
     def init_UI(self):
         self.setGeometry(300, 300, 1440, 960)
@@ -56,9 +69,9 @@ class Form(QMainWindow):
     def init_layout(self):
         #morph layout
         groupBox_morph = QGroupBox()
-        vLayout_morph = QHBoxLayout()
+        vLayout_morph = QVBoxLayout()
 
-        button = self.init_morph_buttion()
+        button = self.init_morph_widget()
         for b in button:
             vLayout_morph.addWidget(b)
 
@@ -78,16 +91,24 @@ class Form(QMainWindow):
     def init_label(self):
         self.label_image = MyQLabel()
         self.label_image.setAlignment(Qt.AlignTop)
-        self.label_image.click_pos.connect(self.update_pos_)
+        self.label_image.click_pos.connect(self._update_pos)
         pass
 
     def init_general_button(self):
         pass
 
-    def init_morph_buttion(self):
+    def init_morph_widget(self):
+        list_ = []
+
+        self.lineEdit_radius = QLineEdit()
+        self.lineEdit_radius.setInputMask('99')
+        list_.append(self.lineEdit_radius)
+
         pushButton_snake = QPushButton()
         pushButton_snake.setText('morph snake')
-        return [pushButton_snake]
+        pushButton_snake.clicked.connect(self._pushButton_snake_click)
+        list_.append(pushButton_snake)
+        return list_
 
     def open_image_(self):
         file_name, file_filter = QFileDialog.getOpenFileName(self, 'Open Image', '.', 'Images (*.jpg *.bmp)')
@@ -100,7 +121,7 @@ class Form(QMainWindow):
         self.label_image.setPixmap(QPixmap(self._image))
 
     @pyqtSlot(int, int)
-    def update_pos_(self, x, y):
+    def _update_pos(self, x, y):
         if not self._image:
             return
         x = x if x < self._image.width() else -1
@@ -109,6 +130,19 @@ class Form(QMainWindow):
         if x is not -1 and y is not -1:
             self._init_point = (x, y)
             print("Click position:{} {}".format(x, y))
+
+    @pyqtSlot()
+    def _pushButton_snake_click(self):
+        print('morph snake')
+        if not self._image:
+            print('Please image first')
+            return
+        if not self._init_point:
+            print('Please click init point')
+            return
+
+        #self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.3, balloon=1)
+
 
 def main():
     app = QApplication(sys.argv)
