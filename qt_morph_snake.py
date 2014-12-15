@@ -79,6 +79,8 @@ class Form(QMainWindow):
 
         #main layout
         gridLayout_main = QGridLayout()
+        gridLayout_main.setColumnStretch(0, 2)
+        gridLayout_main.setColumnStretch(1, 1)
         central_widget = QWidget()
         central_widget.setLayout(gridLayout_main)
         self.setCentralWidget(central_widget)
