@@ -67,13 +67,21 @@ class Form(QMainWindow):
         self.show()
 
     def init_layout(self):
+        #input layout
+        formLayout_input = QFormLayout()
+        input_ = self.init_input_widgit()
+        for t, el in input_:
+            formLayout_input.addRow(t, el)
+
         #morph layout
         groupBox_morph = QGroupBox()
         vLayout_morph = QVBoxLayout()
+        vLayout_morph.addLayout(formLayout_input)
 
-        button = self.init_morph_widget()
+        button = self.init_morph_button()
         for b in button:
             vLayout_morph.addWidget(b)
+        vLayout_morph.addStretch(1)
 
         groupBox_morph.setLayout(vLayout_morph)
 
@@ -88,6 +96,7 @@ class Form(QMainWindow):
         self.init_label()
 
         gridLayout_main.addWidget(self.label_image, 0, 0)
+        #gridLayout_main.addLayout(vLayout_morph, 0, 1)
         gridLayout_main.addWidget(groupBox_morph, 0, 1)
 
     def init_label(self):
@@ -99,12 +108,16 @@ class Form(QMainWindow):
     def init_general_button(self):
         pass
 
-    def init_morph_widget(self):
+    def init_input_widgit(self):
         list_ = []
-
+        label_text = QLabel('radius') 
         self.lineEdit_radius = QLineEdit()
         self.lineEdit_radius.setInputMask('99')
-        list_.append(self.lineEdit_radius)
+        list_.append((label_text, self.lineEdit_radius))
+        return list_
+
+    def init_morph_button(self):
+        list_ = []
 
         pushButton_snake = QPushButton()
         pushButton_snake.setText('morph snake')
