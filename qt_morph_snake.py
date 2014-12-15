@@ -133,6 +133,7 @@ class Form(QMainWindow):
             self._init_point = (x, y)
             print("Click position:{} {}".format(x, y))
 
+    #TODO: Modify if...else... to exception?
     @pyqtSlot()
     def _pushButton_snake_click(self):
         print('morph snake')
@@ -143,8 +144,14 @@ class Form(QMainWindow):
             print('Please click init point')
             return
 
-        #self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.3, balloon=1)
+        radius = int(self.lineEdit_radius.text())
+        if not radius:
+            print('Please input radius')
 
+        self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.3, balloon=1)
+        levelset = LevelSetSolver.circle_levelset(self._data.shape, self._init_point, radius)
+        print('init point: ' + str(self._init_point))
+        print('radius: ' + str(radius))
 
 def main():
     app = QApplication(sys.argv)

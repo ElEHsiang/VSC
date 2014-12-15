@@ -24,22 +24,22 @@ def IS(u):
 class LevelSetSolver():
     """Level set solver
 
-    Attributes
-    _I -- image data, 2d numpy array
-    _gI -- gradient of _I
-    _smooth -- smooth factor
-    _threshold -- mask threhold, determine level set affect region
-    _balloon -- balloon force
+    Attributes:
+    _I: image data, 2d numpy array
+    _gI: gradient of _I
+    _smooth: smooth factor
+    _threshold: mask threhold, determine level set affect region
+    _balloon: balloon force
     """
 
     def __init__(self, image, smooth=1, threshold=0, balloon=0):
         """Create a level set solver
 
         Args:
-        image -- image data, 2d numpy array
-        smoothing -- smoothing factor
-        threshold -- mask threhold, determine level set affect region
-        balloon -- balloon force
+        image: image data, 2d numpy array
+        smoothing: smoothing factor
+        threshold: mask threhold, determine level set affect region
+        balloon: balloon force
         """
         if type(image) is not np.ndarray:
             raise(TypeError, "image must be numpy ndarray")
@@ -59,6 +59,13 @@ class LevelSetSolver():
 
     def set_levelset(self, u):
         self._u = np.double(u)
+
+    @staticmethod
+    def circle_levelset(shape, center, sqradius):
+        R, C = np.mgrid[:shape[0], :shape[1]]
+        phi = sqradius - (np.sqrt((R - center[0])**2) + (C - center[0])**2)
+        u = np.float_(phi > 0)
+        return u
 
     def _update_mask(self):
         """Compute mask to speed up."""
