@@ -53,7 +53,7 @@ class Form(QMainWindow):
         open_action = QAction('Open', self)
         open_action.setShortcut('Ctrl+O')
         open_action.setStatusTip('open an image')
-        open_action.triggered.connect(self.open_image_)
+        open_action.triggered.connect(self._open_image)
 
         close_action = QAction('Close', self)
         close_action.setShortcut('Ctrl+Q')
@@ -134,7 +134,7 @@ class Form(QMainWindow):
         list_.append(pushButton_snake)
         return list_
 
-    def open_image_(self):
+    def _open_image(self):
         file_name, file_filter = QFileDialog.getOpenFileName(self, 'Open Image', '.', 'Images (*.jpg *.bmp)')
         if not file_name:
             return
@@ -185,18 +185,13 @@ class Form(QMainWindow):
         u = []
         for i in range(int(iter)):
             u = self._solver.step()
-        u[u > 0] = 1
         """
         e = sobel(u)
-        e[e != 0] = 1
 
         edge = np.zeros_like(u)
         edge[e != 0] = 1
-        edge[u != 0] = 0
+        edge[u != 0] = 1
         """
-
-        edge = np.zeros_like(u)
-
         edge_points = list(reduce(zip, np.where(u == 1)))
         
         pixmap = QPixmap(self._image)

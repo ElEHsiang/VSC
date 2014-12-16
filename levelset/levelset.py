@@ -65,7 +65,7 @@ class LevelSetSolver():
     @staticmethod
     def circle_levelset(shape, center, sqradius):
         R, C = np.mgrid[:shape[0], :shape[1]]
-        phi = sqradius - (np.sqrt((R - center[0])**2) + (C - center[0])**2)
+        phi = sqradius - (np.sqrt((R - center[1])**2) + (C - center[0])**2)
         u = np.float_(phi > 0)
         return u
 
