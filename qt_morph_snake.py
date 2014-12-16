@@ -116,11 +116,13 @@ class Form(QMainWindow):
         label_text = QLabel('radius') 
         self.lineEdit_radius = QLineEdit()
         self.lineEdit_radius.setInputMask('99')
+        self.lineEdit_radius.setCursorPosition(0)
         list_.append((label_text, self.lineEdit_radius))
 
         label_text = QLabel('iterations')
         self.lineEdit_iter = QLineEdit()
         self.lineEdit_iter.setInputMask('999')
+        self.lineEdit_iter.setCursorPosition(0)
         list_.append((label_text, self.lineEdit_iter))
 
         return list_
