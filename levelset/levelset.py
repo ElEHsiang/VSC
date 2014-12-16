@@ -51,11 +51,13 @@ class LevelSetSolver():
         self._threshold = threshold
         self._balloon = balloon
 
-        self._gI = self._gborder(self._I)
-        self._dgI = np.gradient(self._dI)
+        self._gI = self._gborder(self._I/255.0, alpha=1000, sigma=5.48)
+        self._dgI = np.gradient(self._gI)
 
         dim = np.ndim(image)
         self.structure = scipy.ndimage.generate_binary_structure(dim, 2)
+
+        self._update_mask()
 
     def set_levelset(self, u):
         self._u = np.double(u)
@@ -69,12 +71,12 @@ class LevelSetSolver():
 
     def _update_mask(self):
         """Compute mask to speed up."""
-        self._mask = self._data > self._threshold
-        self._mask_v = self._data > self._threshold * np.abs(self._balloon)
+        self._mask = self._gI > self._threshold
+        self._mask_v = self._gI > self._threshold/np.abs(self._balloon)
 
-    def _gborder(self, alpha=1.0, sigma=1.0):
+    def _gborder(self, img, alpha=1.0, sigma=1.0):
         """Compute g(I) energy"""
-        grad_norm = scipy.ndimage.gaussian_gradient_magnitude(self._I, sigma, mode="constant")
+        grad_norm = scipy.ndimage.gaussian_gradient_magnitude(img, sigma, mode="constant")
         return 1.0/np.sqrt(1.0 + alpha * grad_norm)
 
     def step(self):

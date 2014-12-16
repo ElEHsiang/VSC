@@ -11,6 +11,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from scipy.misc import imread
+from scipy.ndimage.filters import sobel
+from functools import reduce
 
 from utils.MyQLabel import MyQLabel
 from levelset.levelset import LevelSetSolver
@@ -34,6 +36,7 @@ class Form(QMainWindow):
     """
     def __init__(self):
         super().__init__()
+        pyqtRemoveInputHook()
         self.init_UI()
         self.init_data()
 
@@ -161,10 +164,41 @@ class Form(QMainWindow):
         if not radius:
             print('Please input radius')
 
-        self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.3, balloon=1)
+        self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.5, balloon=1)
         levelset = LevelSetSolver.circle_levelset(self._data.shape, self._init_point, radius)
+        self._solver.set_levelset(levelset)
         print('init point: ' + str(self._init_point))
         print('radius: ' + str(radius))
+
+        u = []
+        for i in range(100):
+            u = self._solver.step()
+        print(u[u<0])
+        print(u[u>0])
+        u[u > 0] = 1
+        """
+        e = sobel(u)
+        e[e != 0] = 1
+
+        edge = np.zeros_like(u)
+        edge[e != 0] = 1
+        edge[u != 0] = 0
+        """
+
+        edge = np.zeros_like(u)
+
+        edge_points = list(reduce(zip, np.where(u == 1)))
+        
+        pixmap = QPixmap(self._image)
+        painter = QPainter(pixmap)
+        painter.setPen(Qt.red)
+
+        for y, x in edge_points:
+            painter.drawPoint(x, y)
+
+        self.label_image.setPixmap(pixmap)
+
+        del painter
 
 def main():
     app = QApplication(sys.argv)
