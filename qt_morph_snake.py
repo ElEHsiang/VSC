@@ -117,6 +117,12 @@ class Form(QMainWindow):
         self.lineEdit_radius = QLineEdit()
         self.lineEdit_radius.setInputMask('99')
         list_.append((label_text, self.lineEdit_radius))
+
+        label_text = QLabel('iterations')
+        self.lineEdit_iter = QLineEdit()
+        self.lineEdit_iter.setInputMask('999')
+        list_.append((label_text, self.lineEdit_iter))
+
         return list_
 
     def init_morph_button(self):
@@ -163,6 +169,12 @@ class Form(QMainWindow):
         radius = int(self.lineEdit_radius.text())
         if not radius:
             print('Please input radius')
+            return
+
+        iter = self.lineEdit_iter.text()
+        if not iter or iter == 0:
+            print('Please input iteration times')
+            return
 
         self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.5, balloon=1)
         levelset = LevelSetSolver.circle_levelset(self._data.shape, self._init_point, radius)
@@ -171,10 +183,8 @@ class Form(QMainWindow):
         print('radius: ' + str(radius))
 
         u = []
-        for i in range(100):
+        for i in range(int(iter)):
             u = self._solver.step()
-        print(u[u<0])
-        print(u[u>0])
         u[u > 0] = 1
         """
         e = sobel(u)
