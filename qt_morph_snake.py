@@ -132,7 +132,8 @@ class Form(QMainWindow):
 
         label_text = QLabel('balloon')
         self.lineEdit_balloon = QLineEdit()
-        self.lineEdit_balloon.setInputMask('#')
+        qrev = QRegExpValidator(QRegExp('-?[1-9]'))
+        self.lineEdit_balloon.setValidator(qrev)
         self.lineEdit_balloon.setText('1')
         list_.append((label_text, self.lineEdit_balloon))
 
