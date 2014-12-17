@@ -178,7 +178,7 @@ class Form(QMainWindow):
             print('Please input iteration times')
             return
 
-        self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.5, balloon=1)
+        self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.3, balloon=1)
         levelset = LevelSetSolver.circle_levelset(self._data.shape, self._init_point, radius)
         self._solver.set_levelset(levelset)
         print('init point: ' + str(self._init_point))
@@ -187,25 +187,19 @@ class Form(QMainWindow):
         u = []
         for i in range(int(iter)):
             u = self._solver.step()
-        """
-        e = sobel(u)
+            edge_points = list(reduce(zip, np.where(u == 1)))
+            
+            pixmap = QPixmap(self._image)
+            painter = QPainter(pixmap)
+            painter.setPen(Qt.red)
 
-        edge = np.zeros_like(u)
-        edge[e != 0] = 1
-        edge[u != 0] = 1
-        """
-        edge_points = list(reduce(zip, np.where(u == 1)))
-        
-        pixmap = QPixmap(self._image)
-        painter = QPainter(pixmap)
-        painter.setPen(Qt.red)
+            for y, x in edge_points:
+                painter.drawPoint(x, y)
 
-        for y, x in edge_points:
-            painter.drawPoint(x, y)
+            self.label_image.setPixmap(pixmap)
+            del painter
+            QEventLoop().processEvents()
 
-        self.label_image.setPixmap(pixmap)
-
-        del painter
 
 def main():
     app = QApplication(sys.argv)
