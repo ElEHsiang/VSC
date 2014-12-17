@@ -116,13 +116,29 @@ class Form(QMainWindow):
         label_text = QLabel('radius') 
         self.lineEdit_radius = QLineEdit()
         self.lineEdit_radius.setInputMask('99')
-        self.lineEdit_radius.setCursorPosition(0)
         list_.append((label_text, self.lineEdit_radius))
+
+        label_text = QLabel('threshold')
+        self.lineEdit_threshold = QLineEdit()
+        self.lineEdit_threshold.setInputMask('.99')
+        self.lineEdit_threshold.setText('.3')
+        list_.append((label_text, self.lineEdit_threshold))
+
+        label_text = QLabel('smooth')
+        self.lineEdit_smooth = QLineEdit()
+        self.lineEdit_smooth.setInputMask('9')
+        self.lineEdit_smooth.setText('1')
+        list_.append((label_text, self.lineEdit_smooth))
+
+        label_text = QLabel('balloon')
+        self.lineEdit_balloon = QLineEdit()
+        self.lineEdit_balloon.setInputMask('#')
+        self.lineEdit_balloon.setText('1')
+        list_.append((label_text, self.lineEdit_balloon))
 
         label_text = QLabel('iterations')
         self.lineEdit_iter = QLineEdit()
         self.lineEdit_iter.setInputMask('999')
-        self.lineEdit_iter.setCursorPosition(0)
         list_.append((label_text, self.lineEdit_iter))
 
         return list_
@@ -169,16 +185,15 @@ class Form(QMainWindow):
             return
 
         radius = int(self.lineEdit_radius.text())
-        if not radius:
-            print('Please input radius')
+        smooth = float(self.lineEdit_smooth.text())
+        threshold = float(self.lineEdit_threshold.text())
+        iter = int(self.lineEdit_iter.text())
+        balloon = int(self.lineEdit_balloon.text())
+        if not radius or not smooth or not threshold or not iter or not balloon:
+            print('Please input parameters')
             return
 
-        iter = self.lineEdit_iter.text()
-        if not iter or iter == 0:
-            print('Please input iteration times')
-            return
-
-        self._solver = LevelSetSolver(self._data, smooth=1, threshold=0.3, balloon=1)
+        self._solver = LevelSetSolver(self._data, smooth=smooth, threshold=threshold, balloon=balloon)
         levelset = LevelSetSolver.circle_levelset(self._data.shape, self._init_point, radius)
         self._solver.set_levelset(levelset)
         print('init point: ' + str(self._init_point))
