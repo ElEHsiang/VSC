@@ -243,8 +243,7 @@ class Form(QMainWindow):
             lines = f.readlines()
             content = list(map(lambda x: x[:-1].split(' '), lines))
             self._model = np.array([list(map(int, x[:-1])) for x in content])
-
-        print(self._model)
+        binary_fill_holes(self._model, output=self._model)
 
 def main():
     app = QApplication(sys.argv)
