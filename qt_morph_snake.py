@@ -41,12 +41,14 @@ class Form(QMainWindow):
         pyqtRemoveInputHook()
         self.init_UI()
         self.init_data()
+        
 
     def init_data(self):
         self._image = []
         self._data = []
         self._init_point = ()
         self._solver = []
+        self._model = []
 
     def init_UI(self):
         self.setGeometry(300, 300, 1440, 960)
@@ -82,6 +84,11 @@ class Form(QMainWindow):
         groupBox_morph = QGroupBox()
         vLayout_morph = QVBoxLayout()
         vLayout_morph.addLayout(formLayout_input)
+        
+        #general button
+        button = self.init_general_button()
+        for b in button:
+            vLayout_morph.addWidget(b)
 
         button = self.init_morph_button()
         for b in button:
@@ -111,7 +118,13 @@ class Form(QMainWindow):
         pass
 
     def init_general_button(self):
-        pass
+        list_ = []
+
+        pushButton_load_model = QPushButton('load model')
+        pushButton_load_model.clicked.connect(self._pushButton_load_model_click)
+        list_.append(pushButton_load_model)
+
+        return list_
 
     def init_input_widgit(self):
         list_ = []
@@ -223,6 +236,15 @@ class Form(QMainWindow):
             del painter
             QEventLoop().processEvents()
 
+    @pyqtSlot()
+    def _pushButton_load_model_click(self):
+        file_name, file_filter = QFileDialog.getOpenFileName(self, 'Load model', '.', 'Text file (*.txt)')
+        with open(file_name, 'r') as f:
+            lines = f.readlines()
+            content = list(map(lambda x: x[:-1].split(' '), lines))
+            self._model = np.array([list(map(int, x[:-1])) for x in content])
+
+        print(self._model)
 
 def main():
     app = QApplication(sys.argv)
