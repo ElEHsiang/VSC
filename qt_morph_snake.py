@@ -12,6 +12,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from scipy.misc import imread
 from scipy.ndimage.filters import sobel
+from scipy.ndimage.morphology import binary_fill_holes
 from skimage.filter import canny
 from functools import reduce
 
@@ -204,7 +205,10 @@ class Form(QMainWindow):
         u = []
         for i in range(int(iter)):
             u = self._solver.step()
-            edge = canny(u)
+
+            edge = binary_fill_holes(u)
+            edge = canny(edge)
+            edge[edge != 0] = 1
             
             edge_points = list(reduce(zip, np.where(edge != 0)))
             
