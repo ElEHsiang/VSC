@@ -12,6 +12,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from scipy.misc import imread
 from scipy.ndimage.filters import sobel
+from skimage.filter import canny
 from functools import reduce
 
 from utils.MyQLabel import MyQLabel
@@ -203,7 +204,9 @@ class Form(QMainWindow):
         u = []
         for i in range(int(iter)):
             u = self._solver.step()
-            edge_points = list(reduce(zip, np.where(u == 1)))
+            edge = canny(u)
+            
+            edge_points = list(reduce(zip, np.where(edge != 0)))
             
             pixmap = QPixmap(self._image)
             painter = QPainter(pixmap)
