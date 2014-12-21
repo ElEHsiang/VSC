@@ -238,12 +238,15 @@ class Form(QMainWindow):
 
     @pyqtSlot()
     def _pushButton_load_model_click(self):
+        """load model and fill inside 0 as 1"""
         file_name, file_filter = QFileDialog.getOpenFileName(self, 'Load model', '.', 'Text file (*.txt)')
         with open(file_name, 'r') as f:
             lines = f.readlines()
             content = list(map(lambda x: x[:-1].split(' '), lines))
             self._model = np.array([list(map(int, x[:-1])) for x in content])
         binary_fill_holes(self._model, output=self._model)
+
+        print('load model complete')
 
 def main():
     app = QApplication(sys.argv)
