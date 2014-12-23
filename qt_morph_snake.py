@@ -16,8 +16,10 @@ from scipy.ndimage.morphology import binary_fill_holes
 from skimage.filter import canny
 from functools import reduce
 
+from utils import shape_model
 from utils.MyQLabel import MyQLabel
 from levelset.levelset import LevelSetSolver
+
 
 __author__ = 'Yun Hsiang'
 __email__ = 'hsiang023167@gmail.com'
@@ -31,9 +33,11 @@ class Form(QMainWindow):
         _data: numpy.ndarray for image, gray scale.
         _init_point: level set init point.
         _solver: LevelSetSolver
+        _model: model contour
+        _model_variance: model variance
 
     Slot:
-        _pushButton_snake_click: Start snake process.
+        pushButton_snake_click: Start snake process.
         _update_pos: Connected with MyQLabel. Record level set init point.
     """
     def __init__(self):
@@ -121,7 +125,7 @@ class Form(QMainWindow):
         list_ = []
 
         pushButton_load_model = QPushButton('load model')
-        pushButton_load_model.clicked.connect(self._pushButton_load_model_click)
+        pushButton_load_model.clicked.connect(self.pushButton_load_model_click)
         list_.append(pushButton_load_model)
 
         return list_
@@ -164,7 +168,7 @@ class Form(QMainWindow):
 
         pushButton_snake = QPushButton()
         pushButton_snake.setText('morph snake')
-        pushButton_snake.clicked.connect(self._pushButton_snake_click)
+        pushButton_snake.clicked.connect(self.pushButton_snake_click)
         list_.append(pushButton_snake)
         return list_
 
@@ -191,7 +195,7 @@ class Form(QMainWindow):
 
     #TODO: Modify if...else... to exception?
     @pyqtSlot()
-    def _pushButton_snake_click(self):
+    def pushButton_snake_click(self):
         print('morph snake')
         if not self._image:
             print('Please image first')
@@ -237,15 +241,9 @@ class Form(QMainWindow):
             QEventLoop().processEvents()
 
     @pyqtSlot()
-    def _pushButton_load_model_click(self):
-        """load model and fill inside 0 as 1"""
-        file_name, file_filter = QFileDialog.getOpenFileName(self, 'Load model', '.', 'Text file (*.txt)')
-        with open(file_name, 'r') as f:
-            lines = f.readlines()
-            content = list(map(lambda x: x[:-1].split(' '), lines))
-            self._model = np.array([list(map(int, x[:-1])) for x in content])
-        binary_fill_holes(self._model, output=self._model)
-
+    def pushButton_load_model_click(self):
+        file_name, file_filter = QFileDialog.getOpenFileName(self, 'Load model contour', '.', 'Text file (*.txt)')
+        self._model = shape_model.model(file_name)
         print('load model complete')
 
 def main():
